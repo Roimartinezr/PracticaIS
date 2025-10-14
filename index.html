@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="es" data-theme="light">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PhishGuard AI — Analizador de Phishing</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="app">
+    <!-- Sidebar: Historial + Estadísticas -->
+    <aside id="appSidebar" class="sidebar" aria-label="Barra lateral con historial y estadísticas">
+      <div class="sidebar-header">
+        <div class="brand" title="PhishGuard AI">
+          <div class="logo" aria-hidden="true">
+            <!-- Escudo/Shield SVG -->
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M12 2l7 3v6c0 5-3.5 9.74-7 11-3.5-1.26-7-6-7-11V5l7-3z" stroke="currentColor" stroke-width="1.4" fill="currentColor" opacity=".85"/>
+              <path d="M8 11l3 3 5-5" stroke="#fff" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </div>
+          PhishGuard AI
+        </div>
+        <div class="actions">
+          <button id="toggleTheme" class="btn btn-ghost" title="Cambiar tema">🌗</button>
+          <button id="closeSidebar" class="btn btn-ghost mobilebar" title="Cerrar">✕</button>
+        </div>
+      </div>
+
+      <section class="section" aria-labelledby="title-history">
+        <div class="section-title"><span id="title-history">Historial reciente</span>
+          <button id="clearHistory" class="btn btn-ghost" title="Limpiar historial">🗑️</button>
+        </div>
+        <div id="history">
+          <ul class="history-list" id="historyList"></ul>
+        </div>
+      </section>
+
+      <section class="section" aria-labelledby="title-stats">
+        <div class="section-title"><span id="title-stats">Estadísticas</span></div>
+        <div id="stats">
+          <div class="stats-grid">
+            <div class="stat-card">
+              <div class="stat-kpi" id="kpi-total">0</div>
+              <div class="stat-label">Total consultas</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-kpi" id="kpi-avg">0%</div>
+              <div class="stat-label">Riesgo medio (texto)</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-kpi" id="kpi-safe">0%</div>
+              <div class="stat-label">Seguras</div>
+              <div class="gauge" aria-hidden="true"><div class="gauge-fill" id="g-safe"></div></div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-kpi" id="kpi-suspicious">0%</div>
+              <div class="stat-label">Sospechosas</div>
+              <div class="gauge" aria-hidden="true"><div class="gauge-fill" id="g-suspicious"></div></div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-kpi" id="kpi-phishing">0%</div>
+              <div class="stat-label">Phishing</div>
+              <div class="gauge" aria-hidden="true"><div class="gauge-fill" id="g-phishing"></div></div>
+            </div>
+          </div>
+        </div>
+      </section>
+    </aside>
+
+    <!-- Área principal -->
+    <main class="main">
+      <div class="topbar">
+        <div style="display:flex; align-items:center; gap:10px;">
+          <button id="openSidebar" class="btn btn-ghost mobilebar" title="Abrir barra lateral">☰</button>
+          <h1 style="margin:0; font-size:20px;">Analizador de Phishing</h1>
+        </div>
+        <div class="actions">
+          <button id="prefillDemo" class="btn" title="Rellenar ejemplo">Ejemplo</button>
+          <button id="resetForm" class="btn" title="Limpiar campos">Limpiar</button>
+          <button id="btnResetStats" class="btn btn-ghost" title="Resetear estadísticas">Reset stats</button>
+          <div id="authArea" style="display:flex; gap:8px; align-items:center;">
+            <button id="btnLoginOpen" class="btn">Login</button>
+            <span id="loggedUser" style="font-weight:600; color:var(--muted);"></span>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2 class="card-title">Analiza un texto</h2>
+        <label for="textInput">Pega un texto sospechoso</label>
+        <textarea id="textInput" placeholder="Ejemplo: 'Su cuenta ha sido comprometida...'" aria-label="Texto a analizar"></textarea>
+        <div style="display:flex; gap:10px; margin-top:10px;">
+          <button class="btn btn-primary" id="btnAnalyzeText" onclick="analyzeText()">Analizar texto</button>
+        </div>
+        <p class="hint">Detectaremos URLs, lenguaje engañoso y señales de phishing. El nivel de riesgo se mostrará abajo.</p>
+      </div>
+
+      <div class="split">
+        <div class="card">
+          <h2 class="card-title">Analiza una URL</h2>
+          <label for="urlInput">Introduce una URL para verificar</label>
+          <input id="urlInput" type="text" placeholder="https://ejemplo-dudoso.com" aria-label="URL a analizar" />
+          <div style="display:flex; gap:10px; margin-top:10px;">
+            <button class="btn btn-primary" id="btnAnalyzeUrl" onclick="analyzeUrl()">Analizar URL</button>
+          </div>
+          <p class="hint">Comprobamos reputación y posibles redirecciones maliciosas.</p>
+        </div>
+
+        <div class="card">
+          <h2 class="card-title">Resultado</h2>
+          <div id="result" role="status" aria-live="polite"></div>
+          <div id="riskBarContainer" aria-hidden="true">
+            <p style="margin:10px 0 8px; font-weight:600;">Nivel de riesgo</p>
+            <div id="riskBar"></div>
+            <div id="riskArrow"></div>
+            <p id="riskPercentage"></p>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <!-- Loading overlay -->
+  <div id="loading"><div class="spinner" aria-label="Cargando"></div></div>
+  <!-- Toasts -->
+  <div class="toast" id="toast"></div>
+
+  <!-- Login modal -->
+  <div id="loginModal" style="position:fixed; inset:0; display:none; place-items:center; z-index:60; background: rgba(0,0,0,.4);">
+    <div style="background:var(--card); padding:18px; border-radius:12px; width:320px;">
+      <h3 style="margin:0 0 10px">Iniciar sesión / Registrar</h3>
+      <input id="authUsername" type="text" placeholder="Usuario" style="width:100%; padding:8px; margin-bottom:8px;" />
+      <input id="authPassword" type="password" placeholder="Contraseña" style="width:100%; padding:8px; margin-bottom:12px;" />
+      <div style="display:flex; gap:8px; justify-content:flex-end;">
+        <button id="authSignup" class="btn">Signup</button>
+        <button id="authLogin" class="btn btn-primary">Login</button>
+        <button id="authClose" class="btn btn-ghost">Cerrar</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
